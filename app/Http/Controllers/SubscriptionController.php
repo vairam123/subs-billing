@@ -12,6 +12,11 @@ use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
+    /**
+    * Display available plans for the customer's merchant.
+    *
+    * Only plans belonging to the customer's merchant are offered.
+    */
     public function create(Customer $customer): View
     {
         $plans = Plan::where('merchant_id', $customer->merchant_id)
@@ -24,6 +29,12 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    /**
+    * Create an active subscription and its initial subscription period.
+    *
+    * The selected plan must belong to the customer's merchant. The period
+    * stores a snapshot of pricing and usage limits used for later billing.
+    */
     public function store(
         Request $request,
         Customer $customer
@@ -89,6 +100,9 @@ class SubscriptionController extends Controller
             );
     }
 
+    /**
+    * Calculate the exclusive end of a subscription period for its billing cycle.
+    */
     private function calculateCycleEnd(
         Carbon $startedAt,
         string $billingCycle

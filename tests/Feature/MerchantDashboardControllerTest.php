@@ -15,6 +15,9 @@ class MerchantDashboardControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+    * Ensures the dashboard returns the required usage, overage, and month-over-month drop metrics.
+    */
     public function test_merchant_dashboard_returns_required_usage_metrics(): void
     {
         $merchant = Merchant::create([

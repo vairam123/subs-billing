@@ -143,10 +143,6 @@ class BillingService
         $periodStart = Carbon::parse($period->starts_at);
         $periodEnd = Carbon::parse($period->ends_at);
 
-        /*
-         * Find the actual portion of this subscription period
-         * that falls inside the invoice's billing cycle.
-         */
         $chargeStart = $periodStart->greaterThan($billingPeriodStart)
             ? $periodStart
             : $billingPeriodStart;
@@ -166,10 +162,6 @@ class BillingService
             ];
         }
 
-        /*
-         * Proration is based on the exact duration of the
-         * subscription segment relative to the billing cycle.
-         */
         $billingSeconds = $billingPeriodStart->diffInSeconds(
             $billingPeriodEnd
         );
@@ -184,20 +176,17 @@ class BillingService
         );
 
         /*
-         * Usage belongs to this subscription period, which means
-         * usage before/after a plan change cannot be mixed.
+         * DailyUsage is already tied to this subscription period.
+         * Therefore we only need to restrict it to the billing period.
          */
+        $usageStartDate = $billingPeriodStart->toDateString();
+        $usageEndDate = $billingPeriodEnd->toDateString();
+
         $totalUnits = (int) $period->dailyUsage()
-            ->whereDate('usage_date', '>=', $chargeStart->toDateString())
-            ->whereDate('usage_date', '<', $chargeEnd->toDateString())
+            ->whereDate('usage_date', '>=', $usageStartDate)
+            ->whereDate('usage_date', '<', $usageEndDate)
             ->sum('total_units');
 
-        /*
-         * Included units are prorated for a partial billing period.
-         *
-         * Example:
-         * 10,000 included units × 50% of cycle = 5,000 included units.
-         */
         $includedUnits = (int) floor(
             (int) $period->included_units * $prorationFraction
         );

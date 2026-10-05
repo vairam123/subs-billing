@@ -10,6 +10,13 @@ use Illuminate\View\View;
 
 class MerchantDashboardController extends Controller
 {
+    /**
+     * Build the merchant usage dashboard.
+     *
+     * Calculates top customers, projected overage revenue, and customers
+     * with a usage drop greater than 50% month over month using daily usage.
+     * Returns JSON for API requests or the dashboard view otherwise.
+     */
     public function show(
         Request $request,
         Merchant $merchant
@@ -18,9 +25,7 @@ class MerchantDashboardController extends Controller
         $nextMonthStart = now()->startOfMonth()->addMonth();
         $previousMonthStart = now()->startOfMonth()->subMonth();
 
-        // ---------------------------------------------------------
-        // 1. Top 5 customers by usage this month
-        // ---------------------------------------------------------
+        // Top 5 customers by usage this month
         $topCustomers = DailyUsage::query()
             ->select('customer_id')
             ->selectRaw('SUM(total_units) as total_units')
@@ -41,9 +46,7 @@ class MerchantDashboardController extends Controller
                 ];
             });
 
-        // ---------------------------------------------------------
-        // 2. Find current subscription periods
-        // ---------------------------------------------------------
+        // Find current subscription periods
         $currentPeriods = $merchant->customers()
             ->with([
                 'subscriptions' => function ($query) {
@@ -73,9 +76,7 @@ class MerchantDashboardController extends Controller
             })
             ->values();
 
-        // ---------------------------------------------------------
-        // 3. Aggregate current-month usage by subscription period
-        // ---------------------------------------------------------
+        // Aggregate current-month usage by subscription period
         $periodIds = $currentPeriods
             ->pluck('id')
             ->unique()
@@ -94,9 +95,7 @@ class MerchantDashboardController extends Controller
                 ->pluck('total_units', 'subscription_period_id');
         }
 
-        // ---------------------------------------------------------
-        // 4. Calculate projected overage revenue
-        // ---------------------------------------------------------
+        // Calculate projected overage revenue
         $projectedOverageRevenue = 0.0;
 
         foreach ($currentPeriods as $period) {
@@ -111,9 +110,7 @@ class MerchantDashboardController extends Controller
                 $overageUnits * (float) $period->overage_rate;
         }
 
-        // ---------------------------------------------------------
-        // 5. Current month usage by customer
-        // ---------------------------------------------------------
+        // Current month usage by customer
         $currentUsage = DailyUsage::query()
             ->select('customer_id')
             ->selectRaw('SUM(total_units) as total_units')
@@ -123,9 +120,7 @@ class MerchantDashboardController extends Controller
             ->groupBy('customer_id')
             ->pluck('total_units', 'customer_id');
 
-        // ---------------------------------------------------------
-        // 6. Previous month usage by customer
-        // ---------------------------------------------------------
+        // Previous month usage by customer
         $previousUsage = DailyUsage::query()
             ->select('customer_id')
             ->selectRaw('SUM(total_units) as total_units')
@@ -135,9 +130,7 @@ class MerchantDashboardController extends Controller
             ->groupBy('customer_id')
             ->pluck('total_units', 'customer_id');
 
-        // ---------------------------------------------------------
-        // 7. Customers whose usage dropped by more than 50%
-        // ---------------------------------------------------------
+        // Customers whose usage dropped by more than 50%
         $dropCustomers = $previousUsage
             ->filter(function ($previousUnits, $customerId) use ($currentUsage) {
                 if ((int) $previousUnits <= 0) {

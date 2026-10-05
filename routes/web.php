@@ -71,7 +71,3 @@ Route::post(
     [SubscriptionController::class, 'store']
 )->name('customers.subscriptions.store');
 
-Route::post(
-    '/usage',
-    [UsageController::class, 'store']
-)->name('usage.store');  

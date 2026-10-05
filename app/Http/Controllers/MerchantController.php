@@ -9,6 +9,9 @@ use Illuminate\View\View;
 
 class MerchantController extends Controller
 {
+    /**
+    * List merchants with their plan counts.
+    */
     public function index(): View
     {
         $merchants = Merchant::query()
@@ -21,11 +24,17 @@ class MerchantController extends Controller
         ]);
     }
 
+    /**
+    * Display the merchant creation form.
+    */
     public function create(): View
     {
         return view('merchants.create');
     }
     
+    /**
+    * Validate and create a merchant.
+    */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -39,6 +48,9 @@ class MerchantController extends Controller
             ->with('success', 'Merchant created successfully.');
     }
 
+    /**
+    * Display the merchant and its configured plans.
+    */
     public function show(Merchant $merchant): View
     {
         $merchant->load('plans');

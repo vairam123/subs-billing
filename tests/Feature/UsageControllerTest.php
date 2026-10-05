@@ -11,6 +11,9 @@ class UsageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+    * Ensures the usage endpoint rejects requests missing required fields.
+    */
     public function test_usage_request_requires_valid_fields(): void
     {
         $response = $this->postJson('/api/usage', []);
@@ -26,6 +29,9 @@ class UsageControllerTest extends TestCase
             ]);
     }
 
+    /**
+    * Ensures zero or negative usage cannot be recorded.
+    */
     public function test_usage_units_must_be_positive(): void
     {
         $merchant = Merchant::create([
@@ -51,6 +57,9 @@ class UsageControllerTest extends TestCase
             ->assertJsonValidationErrors(['units']);
     }
 
+    /**
+    * Ensures a customer from another merchant cannot submit usage for the requested tenant.
+    */
     public function test_customer_must_belong_to_the_requested_merchant(): void
     {
         $merchantOne = Merchant::create([

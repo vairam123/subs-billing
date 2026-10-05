@@ -17,6 +17,9 @@ class BillingServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+    * Ensures usage within the included allowance produces only the base subscription charge.
+    */
     public function test_full_cycle_within_included_usage_charges_base_price_only(): void
     {
         $merchant = Merchant::create([
@@ -85,6 +88,9 @@ class BillingServiceTest extends TestCase
         $this->assertSame(10.0000, (float) $item->amount);
     }
 
+    /**
+    * Ensures usage above the included allowance is billed at the configured overage rate.
+    */
     public function test_overage_usage_charges_overage_amount(): void
     {
         $merchant = Merchant::create([
@@ -159,6 +165,9 @@ class BillingServiceTest extends TestCase
         $this->assertSame(4.0000, (float) $overageItem->amount);
     }
 
+    /**
+    * Ensures a mid-cycle plan change prorates both periods and applies each period's pricing to its own usage.
+    */
     public function test_mid_cycle_plan_change_prorates_both_subscription_periods_and_uses_period_specific_usage(): void
     {
         $merchant = Merchant::create([
@@ -362,6 +371,9 @@ class BillingServiceTest extends TestCase
         );
     }
 
+    /**
+    * Ensures the same subscription billing period cannot generate duplicate invoices.
+    */
     public function test_generating_same_invoice_period_twice_returns_existing_invoice(): void
     {
         $merchant = Merchant::create([
@@ -441,6 +453,9 @@ class BillingServiceTest extends TestCase
         );
     }
 
+    /**
+    * Ensures usage exactly at the included allowance produces no overage item.
+    */
     public function test_usage_exactly_at_included_limit_has_no_overage(): void
     {
         $merchant = Merchant::create([
@@ -502,6 +517,9 @@ class BillingServiceTest extends TestCase
         ]);
     }
 
+    /**
+    * Ensures the first unit above the included allowance creates exactly one overage unit.
+    */
     public function test_one_unit_above_included_limit_creates_one_overage_unit(): void
     {
         $merchant = Merchant::create([

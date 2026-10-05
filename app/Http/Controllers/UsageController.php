@@ -12,13 +12,20 @@ use App\Jobs\AggregateDailyUsageJob;
 
 class UsageController extends Controller
 {
+    /**
+    * Record usage for a customer's active subscription period.
+    *
+    * Enforces merchant/customer isolation and idempotency, persists the usage
+    * event, and queues daily aggregation without doing aggregation inline.
+    */
     public function store(StoreUsageRequest $request): JsonResponse
     {
+        // Confirm the customer must belongs to merchant
         $customer = Customer::query()
                     ->where('id', $request->integer('customer_id'))
                     ->where('merchant_id', $request->integer('merchant_id'))
                     ->firstOrFail();
-
+        // Ensure itempotency that request must be processed 1 time
         $idempotencyKey = $request->string('idempotency_key')->toString();
 
         /*
@@ -37,7 +44,7 @@ class UsageController extends Controller
         }
 
         try {
-
+            // used to identify subscription period
             $usageDate = $request->date('usage_date');
 
             $subscriptionPeriod = SubscriptionPeriod::query()
@@ -99,6 +106,12 @@ class UsageController extends Controller
         ], 201);
     }
 
+    /**
+    * Resolve a repeated usage request using its existing idempotency key.
+    *
+    * Returns the existing event when the request matches, or a conflict when
+    * the same key is reused with different usage data.
+    */
     private function handleExistingEvent(
         UsageEvent $existingEvent,
         StoreUsageRequest $request

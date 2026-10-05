@@ -13,6 +13,9 @@ class PlanPricingServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+    * Ensures repeated plan pricing lookups use the cached plan while returning current data after an update.
+    */
     public function test_plan_pricing_is_cached(): void
     {
         Cache::flush();
@@ -52,6 +55,9 @@ class PlanPricingServiceTest extends TestCase
         $this->assertEquals('20.0000', $second->base_price);
     }
 
+    /**
+    * Ensures updating a plan invalidates its cached pricing and exposes the new values.
+    */
     public function test_cache_is_invalidated_when_plan_is_updated(): void
     {
         Cache::flush();

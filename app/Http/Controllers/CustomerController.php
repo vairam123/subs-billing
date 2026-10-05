@@ -10,6 +10,9 @@ use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
+    /**
+    * List the merchant's customers with pagination.
+    */
     public function index(Merchant $merchant): View
     {
         $customers = $merchant->customers()
@@ -22,6 +25,9 @@ class CustomerController extends Controller
         ]);
     }
 
+    /**
+    * Display the customer creation form for the merchant.
+    */
     public function create(Merchant $merchant): View
     {
         return view('customers.create', [
@@ -29,6 +35,9 @@ class CustomerController extends Controller
         ]);
     }
 
+    /**
+    * Validate and create a customer belonging to the merchant.
+    */
     public function store(
         Request $request,
         Merchant $merchant
